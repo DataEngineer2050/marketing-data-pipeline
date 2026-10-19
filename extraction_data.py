@@ -7,19 +7,19 @@ from datetime import datetime, timedelta
 import pandas as pd
 from faker import Faker
 
-# 1. Logging Setup (Production mein alerts aur tracking ke liye zaroori hai)
+# 1. Logging Setup (Essential for monitoring and alerting in production environments)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("pipeline.log"),  # Logs file mein save honge
-        logging.StreamHandler()              # Logs terminal par bhi dikhenge
+        logging.FileHandler("pipeline.log"),  # Redirects and stores runtime logs in a dedicated log file for auditing
+        logging.StreamHandler()              # Streams logs directly to the console/terminal
     ]
 )
 
 fake = Faker()
 
-# 2. Mock Campaign Data (Campaigns ki static list)
+# 2. Mock Campaign Data (Static configuration array for marketing campaigns)
 CAMPAIGNS = [
     {"campaign_id": "CAMP_001", "campaign_name": "Winter Apparel Blast", "channel": "Google Ads"},
     {"campaign_id": "CAMP_002", "campaign_name": "Summer Clearance 2026", "channel": "Facebook Ads"},
@@ -29,11 +29,11 @@ CAMPAIGNS = [
 
 def generate_mock_api_data(days_of_data=5):
     """
-    Real-world API data response ko simulate karta hai.
-    Janbujh kar kuch kharab data (corrupt data) bhi inject karega taaki step 2 mein test ho sake.
+    Simulates a real-world e-commerce marketing API response
+    Intentionally injects anomalies to pressure-test downstream validation logic
     """
     logging.info(
-        f"Extraction Shuru: Pichle {days_of_data} dinon ka data fetch kiya ja raha hai..."
+        f"Extraction Started: Fetching marketing data for the past {days_of_data} days..."
     )
     
     raw_data = []
@@ -48,15 +48,15 @@ def generate_mock_api_data(days_of_data=5):
                 clicks = random.randint(100, 1500)
                 spend = round(random.uniform(50.0, 500.0), 2)
                 
-                # Real-world scenarios: 85% time profit hoga, kuch time conversions nahi hongi
+                # Real-world scenarios: Simulates a typical 85% conversion rate baseline; remaining instances result in zero conversions
                 if random.random() > 0.15:
                     revenue = round(spend * random.uniform(1.2, 4.0), 2)
                 else:
                     revenue = 0.0
                 
                 # PRODUCTION EDGE CASE SIMULATION:
-                # 5% chances hain ki data corrupt ho jaye (e.g., negative revenue ya missing data)
-                # Taaki hum agle step mein validation test kar sakein
+                # Introduces a 5% data corruption threshold (e.g., negative revenue values) for edge-case simulation
+                # Implemented to allow downstream schema and validation testing in the next phase
                 if random.random() < 0.05:
                     revenue = -100.00  # Corrupt Data Rule 1
                     logging.warning(f"Simulating corrupt data for {camp['campaign_id']} on {current_date}")
@@ -72,27 +72,27 @@ def generate_mock_api_data(days_of_data=5):
                 }
                 raw_data.append(data_point)
                 
-        logging.info(f"Extraction Mukammal: Total {len(raw_data)} records generate hue.")
+        logging.info(f"Extraction Completed: Successfully generated {len(raw_data)} records.")
         return raw_data
 
     except Exception as e:
-        logging.error(f"Data extract karne mein error aaya: {str(e)}")
+        logging.error(f"Data extraction failed: {str(e)}")
         raise e
 
 if __name__ == "__main__":
-    # Data generate karein
+    # Initialize data generation process
     extracted_data = generate_mock_api_data(days_of_data=7)
     
-    # Raw data ko JSON format mein save karna (Aksar Data Engineering mein raw response backup rakha jata hai)
+    # "Save raw data payload in JSON format as an immutable source backup
     os.makedirs("raw_data_landing", exist_ok=True)
     file_path = f"raw_data_landing/marketing_data_{datetime.today().strftime('%Y%m%d')}.json"
     
     with open(file_path, "w") as f:
         json.dump(extracted_data, f, indent=4)
         
-    logging.info(f"Raw API Response backup save ho gaya: {file_path}")
+    logging.info(f"Raw API response archive successfully saved: {file_path}")
     
-    # Sirf check karne ke liye output dekhein
+    # Print raw data preview for initial structural verification
     df = pd.DataFrame(extracted_data)
     print("\n--- Extracted Data Preview (First 5 Rows) ---")
     print(df.head())
