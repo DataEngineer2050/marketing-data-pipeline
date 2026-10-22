@@ -2,7 +2,7 @@
 
 A production-grade, resilient data pipeline designed to ingest, validate, transform, and load high-volume marketing campaign data into a modern data warehouse.
 
-## 📌 Phase 1: Data Extraction & Resilient Ingestion
+## 📌 Step 1: Data Extraction & Resilient Ingestion
 In this initial phase, the pipeline simulates real-world marketing API responses (Google Ads, Facebook Ads, Instagram Ads) and establishes a robust landing zone for raw data.
 
 ### 🛠️ Key Features Implemented:
